@@ -1,0 +1,10 @@
+__VERSION__ = '0.4.0'
+
+DEBUG = True
+LOG_LEVEL = 'DEBUG'  # CRITICAL / ERROR / WARNING / INFO / DEBUG
+
+SECRET_KEY = 'super secret key'
+
+# SQLAlchemy
+SQLALCHEMY_DATABASE_URI = 'sqlite:///db/app.db'
+SQLALCHEMY_TRACK_MODIFICATIONS = False

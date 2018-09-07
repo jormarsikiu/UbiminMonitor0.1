@@ -1,0 +1,56 @@
+{# import 'admin/layout.html' as layout with context -#}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block head_meta -%}
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+          content="{% block meta_description %}{% endblock %}">
+    <meta name="author" content="Anastasios Selalmazidis">
+    {% endblock head_meta -%}
+    <title>{% block title -%}{% endblock title %}</title>
+    {% block head_css -%}
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/main.css') }}" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    {% endblock head_css -%}
+    {% block head -%}
+    {% endblock head -%}
+    {% block head_tail -%}
+    {% endblock head_tail -%}
+</head>
+<body style="margin: 0 auto;">
+    {% block page_body -%}
+    <div id="container" style="text-align:center">
+
+        {% block messages -%}
+
+        {% endblock messages -%}
+
+
+        {% block body -%}{% endblock body -%}
+    </div>
+    {% endblock page_body -%}
+
+
+
+    {% block tail_js -%}
+    <script src="{{ url_for('static', filename='scripts/vendor/coin.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/main.js') }}"></script>
+    {% endblock tail_js -%}
+
+    {% block tail -%}
+    <div id="footer">
+        {% block footer -%}
+        </br>
+        <center>
+        <i>Generated in {{ loading_time }} seconds</br></br>
+        &copy; Copyright 2017-2018 by <a href="https://www.ubitica.com">Ubitica</a>.
+        </center>
+        {% endblock footer -%}
+    </div>
+    {% endblock tail -%}
+
+</body>
+</html>

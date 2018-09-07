@@ -1,0 +1,291 @@
+{% extends 'layouts/base.html' %}
+
+{% block meta_description %}
+Antminer Monitor, antminer, monitor, antmon, bitmain, bitcoin, litecoin, dash, 
+cryptocurrency, crypto, miner, mine, mining
+{% endblock %}
+{% block title %}Ubimin Monitor 0.1 <!--{{ version }}-->{% endblock %}
+
+{% block body %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/css/style.css') }}" /><!--Menu-->
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/css/bootstrap.css') }}" /> <!--Botones-->
+<link rel='stylesheet' href="{{ url_for('static', filename='styles/css/bootstrap.min.css') }}"/> <!--Notificaciiones-->
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/css/noty.css') }}"/> <!--Notificaciiones-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+     <!--Menu-->
+     <style type="text/css">
+         a, a:visited, a:active, a:link {
+          text-decoration:none;
+          color:#0071BC;
+          display: none;
+         }
+        nav ul li:hover > a{
+          text-decoration:none;
+          color:#0071BC;
+          display: block;
+        }
+        .activeMO{
+            background-color: #0071BC !important;
+        }
+        .activeA{
+            color: white !important;
+        }
+
+          
+      </style>
+
+
+<script>
+
+    jQuery(document).ready(function(){ 
+        $(".oculto").hide();         
+        $(".oculto")[2].style = "display:block";           
+        $(".MO").click(function(){
+            var nodo = $(this).attr("href");  
+            if ($(nodo).is(":visible")){
+                //$(nodo).hide();
+                return false;
+            }else{
+                $(".oculto").hide();                             
+                $(nodo).fadeToggle( "slow" );
+                return false;
+            }
+        });
+        
+    }); 
+    function changeColor1(i){
+        console.log("entro.--",i);
+        $("[id*=menuFloat]").removeClass("activeMO");
+        $("[id*=menuFloat] a").removeClass("activeA");
+        $("[id*=menuFloat] span").removeClass("activeA");
+        $('#menuFloat'+i).addClass("activeMO");
+        $('#menuFloat'+i +" a").addClass("activeA");
+        $('#menuFloat'+i +" span").addClass("activeA");
+    }
+</script>
+
+<br/><br/><h2>Ubimin Monitor 0.1 <!--{{ version }}--></h2>  
+
+<div class="circulo" style="position:absolute;right:150px; top:15px;z-index:3;">
+    <h1 style="color:white;margin-bottom: 0;" > <b id="countdown"></b> </h1><br>
+    <h5 style="color:white; margin-top:0;"> Seg</h5> 
+</div>
+
+<div style="position:absolute;right:150px; top:130px;z-index:3;">
+    <h4>Actualizaci&oacute;n</h4>
+</div>
+
+<div id="div1" class="oculto">
+    <br/><br/>
+    <br/><br/>
+    {% set variable = [] %}
+    {%- with messages = get_flashed_messages(with_categories=true) %}
+    {%- if messages %}
+    {%- for category, message in messages %}
+    <div class="alert {{ category }}">
+    <strong>{{ message }}</strong>
+        {%- if category=="danger" %}
+            {% if variable.append(1) %} {%- endif %}                                                       
+        {%- else %}
+            {% if variable.append(0) %} {%- endif %}            
+        {%- endif %}
+    </div>
+    {%- endfor %}
+    {%- endif %}
+    {%- endwith %}
+        
+    {%- if inactive_miners %}
+        <fieldset name="inactive_miner_list">
+            <legend>In-active Miners ({{ inactive_miners|length }})</legend>
+            <table style="width:100%">
+                <tr>
+                    <th>IP Address</th>
+                    <th>Model</th>
+                    <th>Remarks</th>
+                    <th>Status</th>
+                    <th>Remove</th>
+                </tr>
+                {%- for inactive_miner in inactive_miners|sort(attribute='ip') %}
+                    <tr>
+                        <td><a target="_blank" href="http://{{ inactive_miner.ip }}">{{ inactive_miner.ip }}</a></td>
+                        <td>{{ inactive_miner.model.model }}</td>
+                        <td>{{ inactive_miner.remarks }}</td>
+                        <td>Error: Check connection or IP Address</td>
+                        <td><a href={{ url_for('antminer.delete_miner', id=inactive_miner.id) }}><img src="/static/images/assets/remove.png"></img></a></td>
+                    </tr>
+                {%- endfor %}
+            </table>
+        </fieldset>
+    {%- endif %}
+    <br>
+</div>
+
+<br/><br/>
+<div id="div2" class="oculto">
+    <fieldset name="add">
+        <legend>Añadir Minero</legend>
+        <form action="{{ url_for('antminer.add_miner') }}" method="POST">
+            <div style="align-items: center;justify-content: center;" class="addminer_container">
+                <div>
+                    <label for="ip">IP Address: </label>
+                </div>
+
+                <div>
+                    <input class="form-control" required type="text" name="ip">
+                </div>
+
+                <div>
+                    <label for="model_id">Modelo: </label>
+                </div>
+
+                <div>
+                    <select required name="model_id" class="form-control">
+                        <option disabled selected value> -- select an option --</option>
+                        {%- for model in models|sort(attribute="model") %}
+                            <option value="{{ model.id }}">{{ model.model }} - {{ model.description }}</option>
+                        {%- endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="remarks">Remarks: </label>
+                </div>
+            
+                <div>
+                    <input class="form-control" type="text" name="remarks">
+                </div>
+                
+                <p><input class="btn btn-default" type="submit" value="Añadir modelo"></p>
+            </div>
+        </form>
+    </fieldset>
+</div>
+
+<div id="div3" class="oculto">
+    <fieldset name="total_hashrate" style="height:130px">
+        <legend>Total hashrate por model (5s)</legend>
+            <ul class="flex-container">
+                {%- for model in total_hash_rate_per_model|sort %}
+                    <li class="flex-item">
+                        <strong><h1></br></br>{{ total_hash_rate_per_model[model] }} </br>
+                                        __________</br>
+                                    </br>{{ model }}
+                            </h1></strong>                       
+                    </li>
+                {% endfor %}
+            </ul>
+    </fieldset>
+</div>
+<br>
+
+<section>
+    <div id="tabla">
+    <fieldset name="active_miner_list">
+        <legend>Mineros activos ({{ active_miners|length }})</legend>
+        <table class="table table-hover" style="width:100%">
+            <tr>
+                <th>IP Address</th>
+                <th>Worker</th>
+                <th>Model</th>
+                <th>Remarks</th>
+                <th title="'O' means OK">Chips (Os)</th>
+                <th title="'X' means defective">Chips (Xs)</th>
+                <th title="'-' means instability of the power supply voltage or the defective hash board">Chips (-)</th>
+                <th>Chip Temp(C)</th>
+                <th>Fan speeds (rpm)</th>
+                <th>Hashrate (5s)</th>
+                <th>HW Error Rate %</th>
+                <th>Uptime</th>
+                <th>Status</th>
+                <th>Remove</th>
+                <th>Conf</th>
+            </tr>
+            {%- for active_miner in active_miners|sort(attribute='ip') %}
+                <tr{%- if active_miner.ip in miner_errors %} class="danger"{%- endif %}>
+                    <td><a target="_blank" href="http://{{ active_miner.ip }}">{{ active_miner.ip }}</a></td>
+                    <td>{{ workers[active_miner.ip] }}</td>
+                    <td title="{{ active_miner.model.description }}">{{ active_miner.model.model }}</td>
+                    <td>{{ active_miner.remarks }}</td>
+                    <td>{{ miner_chips[active_miner.ip]['status']['Os'] }}</td>
+                    <td>{{ miner_chips[active_miner.ip]['status']['Xs'] }}</td>
+                    <td>{{ miner_chips[active_miner.ip]['status']['-'] }}</td>
+                    <td>{{ temperatures[active_miner.ip] }}</td>
+                    <td>{{ fans[active_miner.ip].speeds }}</td>
+                    <td>{{ hash_rates[active_miner.ip] }}</td>
+                    <td>{{ hw_error_rates[active_miner.ip] }}</td>
+                    <td>{{ uptimes[active_miner.ip] }}</td>
+
+                    <td title="{%- if active_miner.ip in miner_errors %}{{ miner_errors[active_miner.ip] }}{%- endif %}">
+                        {%- if active_miner.ip in miner_errors %}Check your miner{%- else %}OK{%- endif %}</td>
+                    <td><a href={{ url_for('antminer.delete_miner', id=active_miner.id) }}>
+                        <button type="button"> <i class="glyphicon glyphicon-remove"></i> </button> </a>
+                    </td>
+
+                    <td><p><a href="#ex1" rel="modal:open">
+                        <button type="button"> <i class="glyphicon glyphicon-wrench"></i></button></a></p>
+                    </td>
+                </tr>
+            {%- endfor %}
+
+        </table>
+    </fieldset>
+    </div>
+</section>
+
+<!--MENU-->
+<div class="menubar" >
+    <nav>
+        <ul>
+            <li id="menuFloat1" onclick="changeColor1(1)" style="margin-bottom:10px;"><a onclick="changeColor1(1)" href="#div1" class='MO'>Notificaciones
+                </a><span><i class="glyphicon glyphicon-bell"></i></span> 
+                {%- if variable == [1] %} 
+                    <span style="float:right; left:9px; top:0px;position:relative;" class="badge">1 </span>
+                {% else %} 
+                {%- endif %} </li>
+            <li id="menuFloat2" onclick="changeColor1(2)" style="margin-bottom:10px;"><a onclick="changeColor1(2)" href="#div2" class='MO'>Añadir Minero</a><span><i class="glyphicon glyphicon-plus"></i></span></li>
+            <li id="menuFloat3" class="activeMO" onclick="changeColor1(3)" style="margin-bottom:10px;"><a href="#div3" onclick="changeColor1(3)" class='MO activeA'>Total hashrate</a><span class="activeA"><i class="glyphicon glyphicon-time"></i></span></li>
+        </ul>
+    </nav>
+</div>
+
+<footer>
+    <div>
+        </br>
+        <center>
+        &copy; Copyright 2017-2018 by <a href="https://www.ubitica.com">Ubitica</a>.
+        </br></br>
+        </center>
+    </div>
+</footer>
+
+<!-- jQuery Para Modal :) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />
+
+<div id="ex1" class="modal">
+        <h3>Apagar Si</h3>
+        <input type="checkbox" name="checkbox" value="">
+        <label>Hash </label>
+        <input type="text" id="hash" name="hash" size="10" />
+        <br />
+        <br />
+        <h3>Reiniciar Si</h3>
+        <input type="checkbox" name="checkbox" value="">
+        <label>Temp > </label>
+        <input type="text" id="temp" name="temp" size="10" />
+        <br />
+        <input type="checkbox" name="checkbox" value="">
+        <label>RPM < </label>
+        <input type="text" id="rpm" name="rpm" size="10" />
+        <br />
+        <p></p>
+         <a href="#" rel="modal:close">
+
+            <button>Cancelar</button>
+         </a>
+            <button>Aceptar</button>
+</div>
+
+{% endblock %}
